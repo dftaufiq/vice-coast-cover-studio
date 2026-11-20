@@ -1,12 +1,352 @@
-html, body { margin: 0; height: 100%; background: #f2f0f4; color: #1d1b22; font: 15px/1.4 system-ui, sans-serif; }
-.app { display: flex; gap: 32px; align-items: center; justify-content: center; height: 100%; padding: 24px; box-sizing: border-box; }
-.controls { display: flex; flex-direction: column; gap: 14px; width: 280px; }
-.controls h1 { margin: 0; font-size: 28px; }
-.controls p { margin: 0; color: #5c5866; }
-label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
-input[type=text] { font: inherit; padding: 8px; border: 1px solid #c9c4d1; border-radius: 6px; }
-button { font: inherit; font-weight: 700; padding: 10px; border: 0; border-radius: 6px; background: #1d1b22; color: #fff; cursor: pointer; }
-canvas { width: min(70vh, 60vw); height: min(70vh, 60vw); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2); }
-body.shot-cover .controls { display: none; }
-body.shot-cover .app { padding: 0; }
-body.shot-cover canvas { width: 100vw; height: 100vh; box-shadow: none; }
+/* Vice Coast Cover Studio — editor styles. The poster fonts live under
+   app/fonts/ (SIL Open Font License) and are used by the canvas renderer;
+   the editor chrome itself uses the system font stack. */
+
+@font-face {
+  font-family: "Anton";
+  src: url("fonts/Anton-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Pacifico";
+  src: url("fonts/Pacifico-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Bebas Neue";
+  src: url("fonts/BebasNeue-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+
+:root {
+  --bg: #150826;
+  --panel: #1e0f36;
+  --panel-2: #271642;
+  --line: #3d2364;
+  --text: #f5eefc;
+  --muted: #b9a4d6;
+  --gold: #ffd94d;
+  --pink: #ff2e88;
+  --cyan: #22d3ee;
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(90deg, #1d0b33, #2a1248 60%, #1d0b33);
+}
+
+.app-header h1 {
+  margin: 0;
+  font-family: "Anton", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 26px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.app-header h1 span {
+  background: linear-gradient(180deg, #ffe066, #ff2e88);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.app-sub {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.primary-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 26px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1c0b33;
+  background: linear-gradient(180deg, #ffe066, #ff9d2e);
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(255, 120, 40, 0.35);
+}
+
+.primary-btn:hover { filter: brightness(1.07); }
+.primary-btn:active { transform: translateY(1px); }
+
+.studio {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 390px;
+  gap: 18px;
+  padding: 18px 22px 28px;
+  align-items: start;
+}
+
+.preview-pane { min-width: 0; }
+
+.preview-frame {
+  background: #0c0518;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+#preview {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  cursor: grab;
+  touch-action: none;
+}
+
+#preview:active { cursor: grabbing; }
+
+.status {
+  min-height: 20px;
+  margin: 10px 2px 4px;
+  color: var(--gold);
+  font-size: 13px;
+}
+
+.hint {
+  margin: 0 2px 12px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.export-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.export-row button,
+.mini-btn {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 14px;
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.export-row button:hover,
+.mini-btn:hover { border-color: var(--pink); }
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-height: calc(100vh - 110px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.control-group {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+
+.control-group h2 {
+  margin: 0 0 10px;
+  font-family: "Bebas Neue", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 19px;
+  letter-spacing: 1.5px;
+  color: var(--gold);
+}
+
+.picker {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.picker-col { flex-direction: column; }
+.picker-grid { display: grid; grid-template-columns: 1fr 1fr; }
+
+.pick {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 9px 11px;
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pick[aria-pressed="true"] {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold) inset;
+}
+
+.pick-name { font-weight: 600; }
+.pick-blurb { color: var(--muted); font-size: 12px; }
+
+.layout-diagram {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #ff2e88, #7b2ff7);
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 16px;
+}
+
+.grade-swatch {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.field input,
+.field select,
+.panel-fields input,
+.panel-actions select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #150826;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.field input:focus,
+.field select:focus,
+.panel-fields input:focus,
+.panel-actions select:focus {
+  outline: 2px solid var(--pink);
+  outline-offset: 0;
+  border-color: transparent;
+}
+
+.field-row {
+  display: flex;
+  gap: 10px;
+}
+
+.field-row .field { flex: 1; min-width: 0; }
+.field-row .mini-btn { flex: 1; }
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+  color: var(--text);
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.check input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--pink);
+}
+
+#panelList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.panel-row {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 8px;
+  align-items: start;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 8px;
+  background: var(--panel-2);
+}
+
+.panel-row.selected {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 1px var(--cyan) inset;
+}
+
+.panel-thumb {
+  width: 52px;
+  height: 68px;
+  object-fit: cover;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.panel-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.detail-input { font-size: 12px !important; }
+
+.panel-row input[type="range"] {
+  grid-column: 1 / -1;
+  width: 100%;
+  accent-color: var(--gold);
+}
+
+.panel-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 6px;
+}
+
+.panel-actions select { flex: 1; min-width: 0; font-size: 13px; }
+
+.fine-print {
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .studio { grid-template-columns: 1fr; }
+  .controls { max-height: none; overflow: visible; }
+}
